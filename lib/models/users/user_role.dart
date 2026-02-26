@@ -1,0 +1,6 @@
+enum UserRole {
+  ADMIN,
+  FLEET_MANAGER,
+  DRIVER,
+  REQUESTER
+}
