@@ -6,7 +6,6 @@ Este é um projeto de aplicação móvel para gestão de frotas, desenvolvido em
 
 * **Flutter:** Versão 3.35.6 
 * **Dart:** Versão 3.9.2 
-*
 
 ## Como Executar
 
