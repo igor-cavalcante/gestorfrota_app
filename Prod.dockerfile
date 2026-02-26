@@ -1,5 +1,6 @@
 # -------- STAGE 1: BUILD --------
 FROM ghcr.io/cirruslabs/flutter:stable AS build-env
+#__ENVS__#
 
 WORKDIR /app
 
@@ -8,12 +9,12 @@ RUN flutter pub get
 
 COPY . .
 
-ARG SPRING_PUBLIC_API_URL
 RUN flutter build web --release \
     --dart-define=API_URL=http://${SPRING_PUBLIC_API_URL}
 
 # -------- STAGE 2: NGINX --------
 FROM nginx:stable-alpine
+#__ENVS__#
 
 COPY --from=build-env /app/build/web /usr/share/nginx/html
 
