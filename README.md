@@ -1,4 +1,4 @@
-# 🚗 Gestão de Frotas (App Flutter)
+# Gestão de Frotas (App Flutter)
 
 Este é um projeto de aplicação móvel para gestão de frotas, desenvolvido em Flutter.
 
