@@ -1,5 +1,7 @@
 FROM ghcr.io/cirruslabs/flutter:stable AS build-env
 
+ARG SPRING_PUBLIC_API_URL
+
 #__ENVS__#
 
 WORKDIR /app
