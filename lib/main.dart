@@ -8,6 +8,12 @@ import 'services/token_storage.dart';
 import 'screens/requester/requester_screen.dart';
 
 void main() async {
+
+  const String envUrl = String.fromEnvironment('API_URL');
+  print('--- CLOUD DEPLOYMENT CHECK ---');
+  print('API_URL defined in build: $envUrl');
+  print('------------------------------');
+  
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('pt_BR', null);
   runApp(const MyApp());
