@@ -8,7 +8,6 @@ import 'services/token_storage.dart';
 import 'screens/requester/requester_screen.dart';
 
 void main() async {
-  
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('pt_BR', null);
   runApp(const MyApp());
