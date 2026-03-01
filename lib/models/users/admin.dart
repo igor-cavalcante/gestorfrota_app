@@ -12,9 +12,9 @@ class Admin extends Pessoa {
 
   factory Admin.fromJson(Map<String, dynamic> json) {
     return Admin(
-      id: json['id'],
-      name: json['name'],
-      cpf: json['cpf'],
+       id: json['id'] as int,
+    name: json['name'] as String,
+    cpf: json['cpf'] as String,
     );
   }
 

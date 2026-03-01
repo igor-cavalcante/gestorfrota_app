@@ -1,7 +1,6 @@
 import 'package:extensao3/screens/requester/requester_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:extensao3/feature/registration-screen.dart';
-import 'package:extensao3/screens/requester/new_request_screen.dart';
 import 'package:extensao3/screens/main_screen.dart';
 import 'package:extensao3/screens/driver/driver_activies_screen.dart';
 
