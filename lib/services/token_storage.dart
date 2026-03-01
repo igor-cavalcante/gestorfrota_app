@@ -1,33 +1,37 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenStorage {
-
-  
-  static const _storage = FlutterSecureStorage();
   static const _tokenKey = "auth_token";
-  static const _roleKey = "user_role"; // Nova chave para a Role
+  static const _roleKey = "user_role";
 
+  // Salva o Token
   static Future<void> saveToken(String token) async {
-    await _storage.write(key: _tokenKey, value: token);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
   }
 
+  // Recupera o Token
   static Future<String?> getToken() async {
-    return await _storage.read(key: _tokenKey);
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
   }
 
-  // Novo método para guardar a Role
+  // Salva a Role
   static Future<void> saveRole(String role) async {
-    await _storage.write(key: _roleKey, value: role);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_roleKey, role);
   }
 
-  // Novo método para ler a Role
+  // Recupera a Role
   static Future<String> getUserRole() async {
-    String? role = await _storage.read(key: _roleKey);
-    return role ?? 'REQUESTER'; // Retorna REQUESTER por padrão se estiver vazio
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_roleKey) ?? 'REQUESTER';
   }
 
+  // Limpa tudo (Logout)
   static Future<void> clear() async {
-    await _storage.delete(key: _tokenKey);
-    await _storage.delete(key: _roleKey);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_roleKey);
   }
 }
