@@ -11,14 +11,14 @@ class ApiClient {
 
   // ---------------- HEADERS PADRÃO ----------------
 
-  static Future<Map<String, String>> _headers() async {
-    final token = await TokenStorage.getToken();
+ static Future<Map<String, String>> _headers() async {
+  final token = await TokenStorage.getToken(); // Agora busca do Local Storage
 
-    return {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    };
-  }
+  return {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer $token",
+  };
+}
 
   // ---------------- GET ----------------
 
