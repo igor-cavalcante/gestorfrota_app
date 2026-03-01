@@ -1,4 +1,4 @@
-# 🚗 Gestão de Frotas (App Flutter)
+# Gestão de Frotas (App Flutter)
 
 Este é um projeto de aplicação móvel para gestão de frotas, desenvolvido em Flutter.
 
@@ -6,9 +6,8 @@ Este é um projeto de aplicação móvel para gestão de frotas, desenvolvido em
 
 * **Flutter:** Versão 3.35.6 
 * **Dart:** Versão 3.9.2 
-*
 
-## Como Executar
+## Como Executar?
 
 1.  Garante que tem o Flutter SDK instalado.
 2.  Executa `flutter pub get` para instalar as dependências.
