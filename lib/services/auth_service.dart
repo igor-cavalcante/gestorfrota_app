@@ -7,36 +7,42 @@ import './api_client.dart'; // Importe seu ApiClient
 class AuthService {
   Future<Pessoa?> login(String cpf, String password) async {
     try {
-      // Usando o ApiClient para manter o padrão do projeto
-      // O endpoint aqui é '/auth/login' pois a baseUrl do ApiClient não tem o '/auth'
       final response = await ApiClient.post(
-        '/auth/login', 
+        '/auth/login',
         body: {"cpf": cpf, "password": password},
         isPublic: true,
       );
 
+      // DEBUG: Verifique o que a API respondeu de fato
+      print("DEBUG: Status Code: ${response.statusCode}");
+      print("DEBUG: Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        
-        // 1. Salva o Token
-        await TokenStorage.saveToken(data['token']);
 
-        // 2. Extrai a role principal para o Storage (se necessário no seu app)
-        if (data['roles'] != null && (data['roles'] as List).isNotEmpty) {
-          await TokenStorage.saveRole(data['roles'][0]);
+        // Validação manual para evitar o "Null check operator"
+        if (data['token'] == null) {
+          print("DEBUG: Erro - Token não veio no JSON");
+          return null;
         }
 
-        data['nome'] = data['name'];
+        await TokenStorage.saveToken(data['token']);
 
-        // 3. Injeta o CPF no mapa (necessário pois seus modelos exigem CPF)
+        // Adicione mapeamentos extras se necessário
         data['cpf'] = cpf;
+        data['nome'] = data['name']; // Se a API manda name e o modelo quer nome
 
-        // 4. Deixa o Pessoa.fromJson decidir quem é o usuário baseado na lista de roles
         return Pessoa.fromJson(data);
+      } else {
+        print(
+          "DEBUG: Login falhou no servidor com status ${response.statusCode}",
+        );
+        return null;
       }
-      return null;
-    } catch (e) {
-      print("Erro no login: $e");
+    } catch (e, stack) {
+      // O 'stack' mostra o caminho exato do erro no código
+      print("DEBUG: EXCEÇÃO CAPTURADA: $e");
+      print("DEBUG: LOCAL DO ERRO: $stack");
       return null;
     }
   }

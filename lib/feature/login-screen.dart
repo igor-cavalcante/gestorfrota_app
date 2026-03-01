@@ -19,8 +19,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
-  
-  final _cpfController = TextEditingController(); 
+
+  final _cpfController = TextEditingController();
   final _passwordController = TextEditingController();
 
   // Liberar memória ao fechar a tela
@@ -44,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final authService = AuthService();
-      // O AuthService agora lida com a injeção do CPF no modelo Pessoa
       final Pessoa? usuario = await authService.login(cpf, password);
 
       if (!mounted) return;
@@ -52,10 +51,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (usuario != null) {
         _redirectUser(usuario);
       } else {
-        _showErrorSnackBar('CPF ou senha inválidos!');
+        // Se chegou aqui e o console não mostrou erro de exceção,
+        // o servidor realmente recusou as credenciais (401/403)
+        _showErrorSnackBar('Credenciais inválidas ou erro no mapeamento.');
       }
     } catch (e) {
-      _showErrorSnackBar('Erro ao conectar com o servidor.');
+      // DEBUG: Mostra o erro real no SnackBar para facilitar o teste no navegador
+      print("DEBUG: Erro na UI de Login: $e");
+      _showErrorSnackBar('Erro técnico: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -67,7 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(builder: (context) => const DriverActivitiesScreen()),
       );
-    } else if (user.role == UserRole.ADMIN || user.role == UserRole.FLEET_MANAGER) {
+    } else if (user.role == UserRole.ADMIN ||
+        user.role == UserRole.FLEET_MANAGER) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -96,13 +100,17 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'GESTÃO DE FROTA POLICIAL', 
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 1.2)
+          'GESTÃO DE FROTA POLICIAL',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            letterSpacing: 1.2,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: const Color(0xFF1A237E), 
+        foregroundColor: const Color(0xFF1A237E),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -112,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: 420, 
+                    maxWidth: 420,
                     minHeight: constraints.maxHeight - 20,
                   ),
                   child: Column(
@@ -126,10 +134,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 16),
                       Text(
                         'Autenticação',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: Colors.blueGrey[900],
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: Colors.blueGrey[900],
+                            ),
                       ),
                       const SizedBox(height: 8),
                       const Text(
@@ -143,7 +152,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: _cpfController,
                         keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.next, // Pula para a senha
+                        textInputAction:
+                            TextInputAction.next, // Pula para a senha
                         decoration: InputDecoration(
                           labelText: 'CPF',
                           hintText: '000.000.000-00',
@@ -163,7 +173,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         obscureText: !_isPasswordVisible,
                         textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _handleLogin(), // Login direto pelo teclado
+                        onSubmitted: (_) =>
+                            _handleLogin(), // Login direto pelo teclado
                         decoration: InputDecoration(
                           labelText: 'Senha',
                           filled: true,
@@ -175,10 +186,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           prefixIcon: const Icon(Icons.lock_person_outlined),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                              _isPasswordVisible
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                             ),
                             onPressed: () {
-                              setState(() => _isPasswordVisible = !_isPasswordVisible);
+                              setState(
+                                () => _isPasswordVisible = !_isPasswordVisible,
+                              );
                             },
                           ),
                         ),
@@ -200,8 +215,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : const Text('ACESSAR SISTEMA', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  'ACESSAR SISTEMA',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -211,12 +234,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const RegistrationScreen(),
+                            ),
                           );
                         },
                         child: RichText(
                           text: const TextSpan(
-                            style: TextStyle(color: Colors.grey, fontSize: 14.0),
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14.0,
+                            ),
                             children: [
                               TextSpan(text: 'Novo operador? '),
                               TextSpan(
