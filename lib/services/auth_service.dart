@@ -26,6 +26,8 @@ class AuthService {
           await TokenStorage.saveRole(data['roles'][0]);
         }
 
+        data['nome'] = data['name'];
+
         // 3. Injeta o CPF no mapa (necessário pois seus modelos exigem CPF)
         data['cpf'] = cpf;
 
