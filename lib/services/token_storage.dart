@@ -1,37 +1,29 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:html' as html;
 
 class TokenStorage {
   static const _tokenKey = "auth_token";
   static const _roleKey = "user_role";
 
-  // Salva o Token
-  static Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
+  static Future<void> saveToken(String? token) async {
+    if (token != null) {
+      html.window.localStorage[_tokenKey] = token;
+    }
   }
 
-  // Recupera o Token
   static Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    return html.window.localStorage[_tokenKey];
   }
 
-  // Salva a Role
   static Future<void> saveRole(String role) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_roleKey, role);
+    html.window.localStorage[_roleKey] = role;
   }
 
-  // Recupera a Role
   static Future<String> getUserRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_roleKey) ?? 'REQUESTER';
+    return html.window.localStorage[_roleKey] ?? "REQUESTER";
   }
 
-  // Limpa tudo (Logout)
   static Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_roleKey);
+    html.window.localStorage.remove(_tokenKey);
+    html.window.localStorage.remove(_roleKey);
   }
 }
