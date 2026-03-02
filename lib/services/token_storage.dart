@@ -18,10 +18,12 @@ class TokenStorage {
 
   static Future<void> saveRole(String role) async {
     web.window.localStorage.setItem(_roleKey, role);
+    print("Token salvo no localStorage");
   }
 
   static Future<String> getUserRole() async {
     return web.window.localStorage.getItem(_roleKey) ?? "REQUESTER";
+    
   }
 
   static Future<void> clear() async {

@@ -28,6 +28,21 @@ class AuthService {
 
         await TokenStorage.saveToken(data['token']);
 
+        // ✅ Salva a role principal
+      if (data['roles'] != null &&
+          data['roles'] is List &&
+          (data['roles'] as List).isNotEmpty) {
+        final role = data['roles'][0].toString();
+        await TokenStorage.saveRole(role);
+        print("DEBUG: Role salva: $role");
+      } else {
+        print("DEBUG: Nenhuma role encontrada, salvando REQUESTER");
+        await TokenStorage.saveRole("REQUESTER");
+      }
+
+        // Injeta cpf para seu model
+        data['cpf'] = cpf;
+
         // Adicione mapeamentos extras se necessário
         data['cpf'] = cpf;
         data['nome'] = data['name']; // Se a API manda name e o modelo quer nome
@@ -44,6 +59,6 @@ class AuthService {
       print("DEBUG: EXCEÇÃO CAPTURADA: $e");
       print("DEBUG: LOCAL DO ERRO: $stack");
       return null;
-    }
+    } 
   }
 }
