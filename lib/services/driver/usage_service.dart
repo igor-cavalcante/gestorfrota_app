@@ -6,6 +6,21 @@ import '../../models/vehicle/vehicle_usage_model.dart';
 import '../api_client.dart';
 
 class UsageService {
+
+    static Future<List<VehicleUsage>> getAll() async {
+      final Response response = await ApiClient.get("/usages");
+
+      if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final List content = data['content'] ?? [];
+
+      // Mapeia cada item do JSON para o modelo VehicleUsage
+      return content.map((json) => VehicleUsage.fromJson(json)).toList();
+    }
+    throw Exception("Erro ao buscar missões: ${response.statusCode}");
+    }
+
+
   /// 🔹 Busca as missões do motorista e retorna objetos tipados
   static Future<List<VehicleUsage>> getMyUsages() async {
     final Response response = await ApiClient.get("/usages/my-usages");

@@ -4,6 +4,7 @@ import '../../models/vehicle/vehicle_model.dart';
 import '../api_client.dart';
 
 class VehicleService {
+  
   static Future<List<Vehicle>> getAll() async {
     final Response response = await ApiClient.get("/vehicles");
     if (response.statusCode == 200) {
