@@ -288,51 +288,145 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
   }
 
   // --- MODAL DE DETALHES ---
-  void _showDetailsDialog(VehicleRequest item) {
+ void _showDetailsDialog(VehicleRequest item) {
+  final bool isLargeScreen = MediaQuery.of(context).size.width > 900;
+
+  if (isLargeScreen) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 800),
+          child: _buildDetailsContent(item, isLargeScreen),
+        ),
+      ),
+    );
+  } else {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (_, scrollController) => SingleChildScrollView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
-              const SizedBox(height: 20),
-              const Text("Detalhes da Solicitação", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const Divider(height: 32),
-              _detailItem("Status Atual", item.status),
-              _detailItem("Solicitante", item.requester),
-              _detailItem("Número Processo", item.processNumber),
-              _detailItem("Destino", "${item.city} - ${item.state}"),
-              _detailItem("Data Saída", item.startDateTime != null ? DateFormat('dd/MM/yyyy HH:mm').format(item.startDateTime!) : "N/A"),
-              _detailItem("Motivo", item.purpose),
-              _detailItem("Descrição", item.description),
-            ],
-          ),
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (_, controller) => _buildDetailsContent(item, false, controller),
         ),
       ),
     );
   }
+}
 
-  Widget _detailItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
-          Text(value, style: const TextStyle(fontSize: 16, height: 1.5)),
-        ],
+Widget _buildDetailsContent(VehicleRequest item, bool isLargeScreen, [ScrollController? scrollController]) {
+  final DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm');
+
+  return Column(
+    children: [
+      // Cabeçalho do Modal
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.blueGrey.shade50,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(isLargeScreen ? 16 : 24)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("DETALHES DA MISSÃO", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey.shade400, letterSpacing: 1.2)),
+                Text(item.processNumber, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            _statusBadge(item.status),
+          ],
+        ),
       ),
-    );
-  }
+      Expanded(
+        child: ListView(
+          controller: scrollController,
+          padding: const EdgeInsets.all(24),
+          children: [
+            _buildSectionTitle("Informações Gerais"),
+            _detailRow(Icons.person, "Solicitante", item.requester),
+            _detailRow(Icons.info_outline, "Finalidade", item.purpose),
+            
+            const SizedBox(height: 24),
+            _buildSectionTitle("Itinerário e Horários"),
+            _detailRow(Icons.location_on, "Destino", "${item.city} - ${item.state}"),
+            Row(
+              children: [
+                Expanded(child: _detailRow(Icons.calendar_today, "Saída", item.startDateTime != null ? formatter.format(item.startDateTime!) : "N/A")),
+                Expanded(child: _detailRow(Icons.keyboard_return, "Vinda (Retorno)", item.endDateTime != null ? formatter.format(item.endDateTime!) : "N/A")),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+            _buildSectionTitle("Descrição da Solicitação"),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+              child: Text(item.description, style: const TextStyle(fontSize: 15, height: 1.5)),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(20),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueGrey.shade800,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("Fechar"),
+          ),
+        ),
+      )
+    ],
+  );
+}
+
+Widget _buildSectionTitle(String title) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
+  );
+}
+
+Widget _detailRow(IconData icon, String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: Colors.blueGrey.shade300),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _statusBadge(String status) {
     Color color;

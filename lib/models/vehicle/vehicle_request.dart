@@ -23,18 +23,20 @@ class VehicleRequest {
     this.endDateTime,
   });
 
-  factory VehicleRequest.fromJson(Map<String, dynamic> json) {
-    return VehicleRequest(
-      id: json['id'] ?? 0,
-      requester: json['requester']?['name'] ?? 'Desconhecido',
-      description: json['description'] ?? '',
-      purpose: json['purpose'] ?? '',
-      status: json['status'] ?? '',
-      processNumber: json['processNumber'] ?? 'N/A', // Mapeado
-      city: json['city'] ?? json['destCity'] ?? '', 
-      state: json['state'] ?? json['destState'] ?? '', 
-      startDateTime: json['startDateTime'] != null ? DateTime.parse(json['startDateTime']) : null,
-      endDateTime: json['endDateTime'] != null ? DateTime.parse(json['endDateTime']) : null,
-    );
-  }
+ factory VehicleRequest.fromJson(Map<String, dynamic> json) {
+  return VehicleRequest(
+    id: json['id'] ?? 0,
+    // Prioriza requesterName que vem no seu exemplo de API
+    requester: json['requesterName'] ?? json['requester']?['name'] ?? 'Desconhecido',
+    description: json['description'] ?? '',
+    purpose: json['purpose'] ?? '',
+    status: json['status'] ?? '',
+    // Garante o mapeamento do snake_case que costuma vir do banco/API 
+    processNumber: json['processNumber'] ?? json['process_number'] ?? 'N/A', 
+    city: json['city'] ?? json['destCity'] ?? '', 
+    state: json['state'] ?? json['destState'] ?? '', 
+    startDateTime: json['startDateTime'] != null ? DateTime.parse(json['startDateTime']) : null,
+    endDateTime: json['endDateTime'] != null ? DateTime.parse(json['endDateTime']) : null,
+  );
+}
 }
