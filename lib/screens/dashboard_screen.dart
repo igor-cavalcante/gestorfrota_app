@@ -15,12 +15,12 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  String _userRole = "";
+  List<String> _userRoles = [];
   late Future<List<Vehicle>> futureVehicles;
   late Future<FleetStats> futureStats;
   Set<int> _vehiclesInUseIds = {};
 
-  @override
+ @override
   void initState() {
     super.initState();
     _loadPermissions();
@@ -37,10 +37,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadPermissions() async {
-    final role = await TokenStorage.getUserRole();
+    // Busca a lista completa de permissões
+    final roles = await TokenStorage.getUserRoles();
     if (mounted) {
       setState(() {
-        _userRole = role;
+        _userRoles = roles;
       });
     }
   }
@@ -591,7 +592,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSectionHeader(String title, VoidCallback? onAdd) {
-    bool isAdmin = _userRole == "ADMIN";
+    // Verifica se "ADMIN" está presente na lista de roles 
+    bool isAdmin = _userRoles.contains("ADMIN");
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -599,6 +602,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           title,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        // O botão só aparece se for admin
         if (onAdd != null && isAdmin)
           ElevatedButton.icon(
             onPressed: onAdd,
@@ -615,4 +619,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
   }
-}
+  }
+
