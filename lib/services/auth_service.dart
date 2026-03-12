@@ -2,7 +2,7 @@
 import 'dart:convert';
 import '../models/users/pessoa.dart';
 import './token_storage.dart';
-import './api_client.dart'; // Importe seu ApiClient
+import './api_client.dart';
 
 class AuthService {
   Future<Pessoa?> login(String cpf, String password) async {
@@ -13,51 +13,28 @@ class AuthService {
         isPublic: true,
       );
 
-      // DEBUG: Verifique o que a API respondeu de fato
-      print("DEBUG: Status Code: ${response.statusCode}");
-      print("DEBUG: Response Body: ${response.body}");
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
 
-        // Validação manual para evitar o "Null check operator"
-        if (data['token'] == null) {
-          print("DEBUG: Erro - Token não veio no JSON");
-          return null;
-        }
-
+        if (data['token'] == null) return null;
         await TokenStorage.saveToken(data['token']);
 
-        // ✅ Salva a role principal
-      if (data['roles'] != null &&
-          data['roles'] is List &&
-          (data['roles'] as List).isNotEmpty) {
-        final role = data['roles'][0].toString();
-        await TokenStorage.saveRole(role);
-        print("DEBUG: Role salva: $role");
-      } else {
-        print("DEBUG: Nenhuma role encontrada, salvando REQUESTER");
-        await TokenStorage.saveRole("REQUESTER");
-      }
+        // ✅ Salva a lista completa de roles vinda da API
+        if (data['roles'] != null && data['roles'] is List) {
+          final List<String> roles = (data['roles'] as List).map((e) => e.toString()).toList();
+          await TokenStorage.saveRoles(roles);
+        } else {
+          await TokenStorage.saveRoles(["REQUESTER"]);
+        }
 
-        // Injeta cpf para seu model
         data['cpf'] = cpf;
-
-        // Adicione mapeamentos extras se necessário
-        data['cpf'] = cpf;
-        data['nome'] = data['name']; // Se a API manda name e o modelo quer nome
+        data['nome'] = data['name']; 
 
         return Pessoa.fromJson(data);
-      } else {
-        print(
-          "DEBUG: Login falhou no servidor com status ${response.statusCode}",
-        );
-        return null;
       }
-    } catch (e, stack) {
-      // O 'stack' mostra o caminho exato do erro no código
-      print("DEBUG: EXCEÇÃO CAPTURADA: $e");
-      print("DEBUG: LOCAL DO ERRO: $stack");
+      return null;
+    } catch (e) {
+      print("DEBUG: EXCEÇÃO NO LOGIN: $e");
       return null;
     } 
   }

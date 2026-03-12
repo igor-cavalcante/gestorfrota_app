@@ -1,8 +1,8 @@
-import 'package:extensao3/screens/requester/requester_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:extensao3/feature/registration-screen.dart';
 import 'package:extensao3/screens/main_screen.dart';
 import 'package:extensao3/screens/driver/driver_activies_screen.dart';
+import 'package:extensao3/screens/requester/requester_screen.dart';
 
 // Integração com a API e Modelos
 import 'package:extensao3/services/auth_service.dart';
@@ -23,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _cpfController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // Liberar memória ao fechar a tela
   @override
   void dispose() {
     _cpfController.dispose();
@@ -51,13 +50,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (usuario != null) {
         _redirectUser(usuario);
       } else {
-        // Se chegou aqui e o console não mostrou erro de exceção,
-        // o servidor realmente recusou as credenciais (401/403)
         _showErrorSnackBar('Credenciais inválidas ou erro no mapeamento.');
       }
     } catch (e) {
-      // DEBUG: Mostra o erro real no SnackBar para facilitar o teste no navegador
-      print("DEBUG: Erro na UI de Login: $e");
+      debugPrint("Erro na UI de Login: $e");
       _showErrorSnackBar('Erro técnico: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -65,23 +61,19 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _redirectUser(Pessoa user) {
+    Widget targetScreen;
     if (user.role == UserRole.DRIVER) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DriverActivitiesScreen()),
-      );
-    } else if (user.role == UserRole.ADMIN ||
-        user.role == UserRole.FLEET_MANAGER) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
+      targetScreen = const DriverActivitiesScreen();
+    } else if (user.role == UserRole.ADMIN || user.role == UserRole.FLEET_MANAGER) {
+      targetScreen = const MainScreen();
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const RequesterScreen()),
-      );
+      targetScreen = const RequesterScreen();
     }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => targetScreen),
+    );
   }
 
   void _showErrorSnackBar(String message) {
@@ -97,53 +89,97 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryColor = Color(0xFF1A237E); // Azul Marinho Policial
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'GESTÃO DE FROTA POLICIAL',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            letterSpacing: 1.2,
+      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(200),
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              color: primaryColor,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(50),
+                bottomRight: Radius.circular(50),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 15,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.shield_outlined,
+                      color: Colors.white,
+                      size: 50,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'VIGIA',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 32,
+                      letterSpacing: 6.0,
+                    ),
+                  ),
+                  const Text(
+                    'Viaturas com Gestão Inteligente para Apoio Operacional',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: const Color(0xFF1A237E),
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 28.0),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: 420,
-                    minHeight: constraints.maxHeight - 20,
+                    maxWidth: 400,
+                    minHeight: constraints.maxHeight,
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.security_rounded,
-                        size: 90,
-                        color: Color(0xFF1A237E),
-                      ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 240), // Espaço para a AppBar expandida
                       Text(
                         'Autenticação',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: Colors.blueGrey[900],
-                            ),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.blueGrey[900],
+                        ),
                       ),
                       const SizedBox(height: 8),
                       const Text(
-                        'Insira suas credenciais para acessar o sistema',
-                        textAlign: TextAlign.center,
+                        'Acesse com seu CPF e senha funcional',
                         style: TextStyle(color: Colors.grey),
                       ),
                       const SizedBox(height: 40),
@@ -152,18 +188,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextField(
                         controller: _cpfController,
                         keyboardType: TextInputType.number,
-                        textInputAction:
-                            TextInputAction.next, // Pula para a senha
+                        textInputAction: TextInputAction.next,
                         decoration: InputDecoration(
                           labelText: 'CPF',
                           hintText: '000.000.000-00',
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: Colors.grey[50],
+                          prefixIcon: const Icon(Icons.badge_outlined, color: primaryColor),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.circular(15.0),
                           ),
-                          prefixIcon: const Icon(Icons.badge_outlined),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15.0),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -173,28 +211,25 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         obscureText: !_isPasswordVisible,
                         textInputAction: TextInputAction.done,
-                        onSubmitted: (_) =>
-                            _handleLogin(), // Login direto pelo teclado
+                        onSubmitted: (_) => _handleLogin(),
                         decoration: InputDecoration(
                           labelText: 'Senha',
                           filled: true,
-                          fillColor: Colors.grey[100],
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          prefixIcon: const Icon(Icons.lock_person_outlined),
+                          fillColor: Colors.grey[50],
+                          prefixIcon: const Icon(Icons.lock_outline, color: primaryColor),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
+                              _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.grey,
                             ),
-                            onPressed: () {
-                              setState(
-                                () => _isPasswordVisible = !_isPasswordVisible,
-                              );
-                            },
+                            onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15.0),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15.0),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
                           ),
                         ),
                       ),
@@ -203,54 +238,44 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Botão de Acesso
                       SizedBox(
                         width: double.infinity,
-                        height: 55.0,
+                        height: 58,
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1A237E),
+                            backgroundColor: primaryColor,
                             foregroundColor: Colors.white,
-                            elevation: 4,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0),
+                              borderRadius: BorderRadius.circular(15),
                             ),
+                            elevation: 2,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
+                              ? const CircularProgressIndicator(color: Colors.white)
                               : const Text(
-                                  'ACESSAR SISTEMA',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  'ENTRAR NO SISTEMA',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                         ),
                       ),
                       const SizedBox(height: 24),
 
-                      // Registro de novo operador
+                      // Solicitar Acesso
                       TextButton(
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => const RegistrationScreen(),
-                            ),
+                            MaterialPageRoute(builder: (context) => const RegistrationScreen()),
                           );
                         },
                         child: RichText(
                           text: const TextSpan(
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14.0,
-                            ),
+                            style: TextStyle(color: Colors.grey, fontSize: 14),
                             children: [
-                              TextSpan(text: 'Novo operador? '),
+                              TextSpan(text: 'Não possui acesso? '),
                               TextSpan(
-                                text: 'Solicitar Acesso',
+                                text: 'Solicitar agora',
                                 style: TextStyle(
-                                  color: Color(0xFF1A237E),
+                                  color: primaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -258,6 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),

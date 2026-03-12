@@ -19,13 +19,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Gestão de Frotas',
+      title: 'VIGIA',
       locale: const Locale('pt', 'BR'),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         useMaterial3: true,
       ),
-      // Agora chamamos o verificador de sessão
       home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
     );
@@ -38,9 +37,8 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String?>(
-      future: TokenStorage.getToken(), // Verifica se existe token salvo
+      future: TokenStorage.getToken(), 
       builder: (context, snapshot) {
-        // Enquanto verifica o storage, mostra uma tela de carregamento
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -52,24 +50,26 @@ class AuthWrapper extends StatelessWidget {
           return const LoginScreen();
         }
 
-        // Se TEM token, precisamos saber qual é a Role para mandar para a tela certa
-        return FutureBuilder<String>(
-          future: TokenStorage.getUserRole(), //
+        // Se TEM token, verifica a lista de roles
+        return FutureBuilder<List<String>>(
+          future: TokenStorage.getUserRoles(), 
           builder: (context, roleSnapshot) {
             if (roleSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(body: Center(child: CircularProgressIndicator()));
             }
 
-            final role = roleSnapshot.data;
+            final roles = roleSnapshot.data ?? ["REQUESTER"];
 
-            // Lógica de redirecionamento idêntica à do seu LoginScreen
-            if (role == 'DRIVER') {
-              return const DriverActivitiesScreen();
-            } else if (role == 'ADMIN' || role == 'FLEET_MANAGER') {
+            // Lógica de Prioridade de Redirecionamento baseada na lista de permissões
+            if (roles.contains('ADMIN') || roles.contains('FLEET_MANAGER')) {
               return const MainScreen();
-            } else {
-              return const RequesterScreen();
-            }
+            } 
+            
+            if (roles.contains('DRIVER')) {
+              return const DriverActivitiesScreen();
+            } 
+
+            return const RequesterScreen();
           },
         );
       },
