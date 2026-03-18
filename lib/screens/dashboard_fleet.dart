@@ -7,14 +7,14 @@ import '../services/driver/usage_service.dart';
 import 'vehicle/vehicle_registration_screen.dart';
 import '../services/token_storage.dart';
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+class DashboardScreenFleet extends StatefulWidget {
+  const DashboardScreenFleet({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  State<DashboardScreenFleet> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreenFleet> {
   List<String> _userRoles = [];
   late Future<List<Vehicle>> futureVehicles;
   late Future<FleetStats> futureStats;
