@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'token_storage.dart';
 
 class ApiClient {
-  static const _baseUrl = "http://200.137.0.21:31842";
+  static const _baseUrl = "http://200.137.0.24:30105";
 
   // ---------------- HEADERS PADRÃO ----------------
 

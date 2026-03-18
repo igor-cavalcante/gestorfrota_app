@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:extensao3/feature/registration-screen.dart';
 import 'package:extensao3/screens/main_screen.dart';
 import 'package:extensao3/screens/driver/driver_activies_screen.dart';
 import 'package:extensao3/screens/requester/requester_screen.dart';
@@ -258,32 +257,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Solicitar Acesso
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const RegistrationScreen()),
-                          );
-                        },
-                        child: RichText(
-                          text: const TextSpan(
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
-                            children: [
-                              TextSpan(text: 'Não possui acesso? '),
-                              TextSpan(
-                                text: 'Solicitar agora',
-                                style: TextStyle(
-                                  color: primaryColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                     ],
                   ),
                 ),

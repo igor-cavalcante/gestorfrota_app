@@ -1,14 +1,12 @@
 // lib/screens/main_screen.dart
 import 'package:flutter/material.dart';
-
-// Importa as 3 telas que vamos navegar
 import 'dashboard_screen.dart';
+import 'package:extensao3/screens/users/dashboard_users.dart'; // Importe sua nova tela de usuários
 import 'fleet_manager/approvals_screen.dart';
 import 'reports_screen.dart';
-
-// Importa a AppBar e a tela de Login (para o Logout)
 import '../widgets/custom_app_bar.dart';
-import 'package:extensao3/feature/login-screen.dart';
+import '../services/token_storage.dart';
+import '../models/users/pessoa.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,68 +16,131 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // Variável de estado para controlar qual aba está selecionada
-  int _selectedIndex = 0; // Começa na aba 0 (Gerência)
+  int _selectedIndex = 0;
+  bool _isAdmin = false;
+  bool _isRailExtended = true; // Controle do toggle da barra lateral
 
-  // Lista dos *títulos* que aparecerão na AppBar
-  static const List<String> _pageTitles = [
-    'Gerência de Frota',
-    'Aprovações Pendentes',
-    'Relatórios',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _checkPermissions();
+  }
 
-  // Lista das *telas* (Widgets) que serão exibidas no corpo
-  static const List<Widget> _pages = <Widget>[
-    DashboardScreen(),   // Nossa tela de dashboard (refatorada)
-    ApprovalsScreen(),   // Tela placeholder
-    ReportsScreen(),     // Tela placeholder
-  ];
-
-  // Função chamada quando o usuário toca numa aba
-  void _onItemTapped(int index) {
+  /// Verifica as permissões de admin usando o seu TokenStorage
+  Future<void> _checkPermissions() async {
+    final isAdmin = await TokenStorage.hasRole('ADMIN'); //
     setState(() {
-      _selectedIndex = index; // Atualiza o estado com o novo índice
+      _isAdmin = isAdmin;
     });
+  }
+
+  /// Constrói a lista de abas baseada no status de admin
+  List<Map<String, dynamic>> _getMenuOptions() {
+    final List<Map<String, dynamic>> options = [
+      {
+        'title': 'Gerência de Frota',
+        'icon': Icons.dashboard_customize,
+        'screen': const DashboardScreen(),
+      },
+      {
+        'title': 'Aprovações',
+        'icon': Icons.check_box_outlined,
+        'screen': const ApprovalsScreen(),
+      },
+    ];
+
+    // Adiciona o Dashboard de Usuários apenas se for Admin
+    if (_isAdmin) {
+      options.add({
+        'title': 'Usuários',
+        'icon': Icons.group,
+        'screen': const DashboardScreenUsers(),
+      });
+    }
+
+    options.add({
+      'title': 'Relatórios',
+      'icon': Icons.bar_chart,
+      'screen': const ReportsScreen(),
+    });
+
+    return options;
   }
 
   @override
   Widget build(BuildContext context) {
-    // O Scaffold principal da aplicação pós-login
+    final menuOptions = _getMenuOptions();
+    final bool isWideScreen = MediaQuery.of(context).size.width >= 760;
+
+    // Garante que o índice selecionado não cause erro se a lista de abas mudar
+    if (_selectedIndex >= menuOptions.length) {
+      _selectedIndex = 0;
+    }
+
     return Scaffold(
-      // 1. A NOSSA APPBAR PERSONALIZADA
       appBar: CustomAppBar(
-        // O título é dinâmico, baseado na aba selecionada
-        title: _pageTitles[_selectedIndex],
+        title: menuOptions[_selectedIndex]['title'],
       ),
+      body: Row(
+        children: [
+          // 1. BARRA LATERAL (NavigationRail) - Somente para Telas >= 760px
+          if (isWideScreen)
+            NavigationRail(
+              extended: _isRailExtended, // Controle do Toggle
+              backgroundColor: Colors.white,
+              selectedIconTheme: const IconThemeData(color: Colors.blueAccent),
+              selectedLabelTextStyle: const TextStyle(
+                color: Colors.blueAccent, 
+                fontWeight: FontWeight.bold
+              ),
+              unselectedIconTheme: const IconThemeData(color: Colors.grey),
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              // Botão de Toggle (Menu Hambúrguer) no topo da Rail
+              leading: IconButton(
+                icon: Icon(_isRailExtended ? Icons.menu_open : Icons.menu),
+                onPressed: () {
+                  setState(() => _isRailExtended = !_isRailExtended);
+                },
+              ),
+              destinations: menuOptions.map((opt) {
+                return NavigationRailDestination(
+                  icon: Icon(opt['icon']),
+                  label: Text(opt['title']),
+                );
+              }).toList(),
+            ),
 
-      // 2. O CORPO DA TELA
-      // Exibe o widget da lista '_pages' correspondente ao índice selecionado
-      body: _pages[_selectedIndex],
-
-      // 3. A BARRA DE NAVEGAÇÃO INFERIOR
-      bottomNavigationBar: BottomNavigationBar(
-        // Os itens da barra
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_customize),
-            label: 'Gerência',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.check_box_outlined),
-            label: 'Aprovações',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Relatórios',
+          // 2. CONTEÚDO PRINCIPAL (A tela selecionada)
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: menuOptions[_selectedIndex]['screen'],
+            ),
           ),
         ],
-
-        // Configurações
-        currentIndex: _selectedIndex, // Diz qual aba está ativa
-        selectedItemColor: Colors.blueAccent, // Cor da aba ativa
-        onTap: _onItemTapped, // Função a ser chamada ao tocar
-        type: BottomNavigationBarType.fixed, // Garante que todos apareçam
       ),
+
+      // 3. BARRA INFERIOR (BottomNavigationBar) - Somente para Telas < 760px
+      bottomNavigationBar: isWideScreen
+          ? null
+          : BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              selectedItemColor: Colors.blueAccent,
+              unselectedItemColor: Colors.grey,
+              type: BottomNavigationBarType.fixed,
+              onTap: (index) {
+                setState(() => _selectedIndex = index);
+              },
+              items: menuOptions.map((opt) {
+                return BottomNavigationBarItem(
+                  icon: Icon(opt['icon']),
+                  label: opt['title'],
+                );
+              }).toList(),
+            ),
     );
   }
 }
