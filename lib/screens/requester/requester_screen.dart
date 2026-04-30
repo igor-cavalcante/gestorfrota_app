@@ -24,6 +24,14 @@ class _RequesterScreenState extends State<RequesterScreen> {
     'CANCELED': 'Canceladas',
   };
 
+  // Mapa para traduzir a prioridade que vem da API
+  final Map<String, String> _priorityLabels = {
+    'LOW': 'Baixa',
+    'NORMAL': 'Normal',
+    'HIGH': 'Alta',
+    'URGENT': 'Urgente',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -161,7 +169,8 @@ class _RequesterScreenState extends State<RequesterScreen> {
                     children: [
                       _sectionTitle("Detalhes da Missão"),
                       _infoRow(Icons.location_on, "Destino", "${req.city} - ${req.state}"),
-                      _infoRow(Icons.priority_high, "Prioridade", req.priority),
+                      // Alterado aqui: Exibindo a prioridade traduzida
+                      _infoRow(Icons.priority_high, "Prioridade", _priorityLabels[req.priority] ?? req.priority),
                       Row(
                         children: [
                           Expanded(child: _infoRow(Icons.calendar_today, "Saída", req.startDateTime != null ? df.format(req.startDateTime!) : "N/A")),
