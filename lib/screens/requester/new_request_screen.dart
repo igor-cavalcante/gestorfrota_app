@@ -20,8 +20,14 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   DateTime? _startDateTime;
   DateTime? _endDateTime;
 
-  String _selectedPriority = 'NORMAL';
-  final List<String> _priorities = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
+  // Alterado aqui: Usando Map para traduzir a prioridade
+  String _selectedPriorityUI = 'Normal';
+  final Map<String, String> _priorityMap = {
+    'Baixa': 'LOW',
+    'Normal': 'NORMAL',
+    'Alta': 'HIGH',
+    'Urgente': 'URGENT',
+  };
 
   String _selectedPurposeUI = 'Diligência / Investigação';
   final Map<String, String> _purposeMap = {
@@ -45,7 +51,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     
     // Breakpoints de responsividade
     final bool isMobile = screenWidth < 600;
-    final bool isTablet = screenWidth >= 600 && screenWidth < 1024;
     
     // Define a largura máxima baseada no dispositivo
     double formMaxWidth = 800; // Largura confortável para Desktop
@@ -61,7 +66,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Container(
-                    // CORREÇÃO: minHeight garante que o fundo ocupe a tela toda e permita o scroll
                     constraints: BoxConstraints(
                       minHeight: constraints.maxHeight,
                     ),
@@ -72,7 +76,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       vertical: isMobile ? 16 : 40,
                     ),
                     child: ConstrainedBox(
-                      // Aumentamos a largura máxima para telas grandes
                       constraints: BoxConstraints(maxWidth: formMaxWidth), 
                       child: Form(
                         key: _formKey,
@@ -106,11 +109,12 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // Alterado aqui: Usando as chaves do mapa de prioridades
                                     Expanded(child: _buildDropdown(
                                       label: "Prioridade",
-                                      value: _selectedPriority,
-                                      items: _priorities,
-                                      onChanged: (v) => setState(() => _selectedPriority = v!),
+                                      value: _selectedPriorityUI,
+                                      items: _priorityMap.keys.toList(),
+                                      onChanged: (v) => setState(() => _selectedPriorityUI = v!),
                                     )),
                                     const SizedBox(width: 16),
                                     Expanded(child: _buildDropdown(
@@ -278,7 +282,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   }
 
   Widget _buildSubmitButton(bool isMobile) {
-    return Center( // Centraliza o botão em telas grandes para melhor estética
+    return Center( 
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: isMobile ? double.infinity : 400),
         child: SizedBox(
@@ -300,7 +304,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     );
   }
 
-  // --- MÉTODOS DE LÓGICA MANTIDOS ---
   Future<void> _pickDateTime({required bool isStart}) async {
     final date = await showDatePicker(
       context: context,
@@ -326,7 +329,8 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     setState(() => _isLoading = true);
     try {
       await RequestService.create({
-        "priority": _selectedPriority,
+        // Alterado aqui: Enviando o valor em inglês mapeado
+        "priority": _priorityMap[_selectedPriorityUI],
         "startDateTime": _startDateTime!.toIso8601String(),
         "endDateTime": _endDateTime!.toIso8601String(),
         "purpose": _purposeMap[_selectedPurposeUI],
