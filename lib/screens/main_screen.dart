@@ -1,12 +1,10 @@
-// lib/screens/main_screen.dart
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
-import 'package:extensao3/screens/users/dashboard_users.dart'; // Importe sua nova tela de usuários
+import 'package:extensao3/screens/users/dashboard_users.dart';
 import 'fleet_manager/approvals_screen.dart';
 import 'reports_screen.dart';
 import '../widgets/custom_app_bar.dart';
 import '../services/token_storage.dart';
-import '../models/users/pessoa.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,7 +16,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   bool _isAdmin = false;
-  bool _isRailExtended = true; // Controle do toggle da barra lateral
+  bool _isRailExtended = true;
 
   @override
   void initState() {
@@ -26,41 +24,42 @@ class _MainScreenState extends State<MainScreen> {
     _checkPermissions();
   }
 
-  /// Verifica as permissões de admin usando o seu TokenStorage
   Future<void> _checkPermissions() async {
-    final isAdmin = await TokenStorage.hasRole('ADMIN'); //
+    final isAdmin = await TokenStorage.hasRole('ADMIN');
     setState(() {
       _isAdmin = isAdmin;
     });
   }
 
-  /// Constrói a lista de abas baseada no status de admin
   List<Map<String, dynamic>> _getMenuOptions() {
     final List<Map<String, dynamic>> options = [
       {
         'title': 'Gerência de Frota',
-        'icon': Icons.dashboard_customize,
+        'icon': Icons.dashboard_customize_outlined,
+        'selectedIcon': Icons.dashboard_customize,
         'screen': const DashboardScreen(),
       },
       {
         'title': 'Aprovações',
         'icon': Icons.check_box_outlined,
+        'selectedIcon': Icons.check_box,
         'screen': const ApprovalsScreen(),
       },
     ];
 
-    // Adiciona o Dashboard de Usuários apenas se for Admin
     if (_isAdmin) {
       options.add({
         'title': 'Usuários',
-        'icon': Icons.group,
+        'icon': Icons.group_outlined,
+        'selectedIcon': Icons.group,
         'screen': const DashboardScreenUsers(),
       });
     }
 
     options.add({
       'title': 'Relatórios',
-      'icon': Icons.bar_chart,
+      'icon': Icons.bar_chart_outlined,
+      'selectedIcon': Icons.bar_chart,
       'screen': const ReportsScreen(),
     });
 
@@ -72,68 +71,89 @@ class _MainScreenState extends State<MainScreen> {
     final menuOptions = _getMenuOptions();
     final bool isWideScreen = MediaQuery.of(context).size.width >= 760;
 
-    // Garante que o índice selecionado não cause erro se a lista de abas mudar
     if (_selectedIndex >= menuOptions.length) {
       _selectedIndex = 0;
     }
 
     return Scaffold(
-      appBar: CustomAppBar(
-        title: menuOptions[_selectedIndex]['title'],
-      ),
-      body: Row(
+      appBar: CustomAppBar(title: menuOptions[_selectedIndex]['title']),
+      // Mudança de Row para Stack para a Navbar não empurrar o conteúdo
+      body: Stack(
         children: [
-          // 1. BARRA LATERAL (NavigationRail) - Somente para Telas >= 760px
-          if (isWideScreen)
-            NavigationRail(
-              extended: _isRailExtended, // Controle do Toggle
-              backgroundColor: Colors.white,
-              selectedIconTheme: const IconThemeData(color: Colors.blueAccent),
-              selectedLabelTextStyle: const TextStyle(
-                color: Colors.blueAccent, 
-                fontWeight: FontWeight.bold
+          // 1. CONTEÚDO PRINCIPAL FIXO
+          // O Padding garante que o conteúdo respeite o espaço da navbar FECHADA (aprox 72px).
+          // Quando a navbar abre, o conteúdo não encolhe, ele permanece intacto.
+          Padding(
+            padding: EdgeInsets.only(left: isWideScreen ? 72.0 : 0.0),
+            child: Container(
+              color: Colors.grey[50],
+              width: double.infinity,
+              height: double.infinity,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: menuOptions[_selectedIndex]['screen'],
               ),
-              unselectedIconTheme: const IconThemeData(color: Colors.grey),
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: (index) {
-                setState(() => _selectedIndex = index);
-              },
-              // Botão de Toggle (Menu Hambúrguer) no topo da Rail
-              leading: IconButton(
-                icon: Icon(_isRailExtended ? Icons.menu_open : Icons.menu),
-                onPressed: () {
-                  setState(() => _isRailExtended = !_isRailExtended);
-                },
-              ),
-              destinations: menuOptions.map((opt) {
-                return NavigationRailDestination(
-                  icon: Icon(opt['icon']),
-                  label: Text(opt['title']),
-                );
-              }).toList(),
-            ),
-
-          // 2. CONTEÚDO PRINCIPAL (A tela selecionada)
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: menuOptions[_selectedIndex]['screen'],
             ),
           ),
+
+          // 2. NAVBAR SOBREPOSTA (OVERLAY)
+          if (isWideScreen)
+            Positioned(
+              top: 0,
+              bottom: 0,
+              left: 0,
+              child: Material(
+                // Adiciona uma sombra elegante quando a navbar abre por cima da tabela
+                elevation: _isRailExtended ? 16.0 : 0.0,
+                color: const Color(0xFF1A237E),
+                child: NavigationRail(
+                  extended: _isRailExtended,
+                  minExtendedWidth: 200,
+                  backgroundColor: const Color(0xFF1A237E),
+                  unselectedIconTheme: const IconThemeData(
+                    color: Colors.white70,
+                  ),
+                  selectedIconTheme: const IconThemeData(color: Colors.white),
+                  unselectedLabelTextStyle: const TextStyle(
+                    color: Colors.white70,
+                  ),
+                  selectedLabelTextStyle: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  destinations: menuOptions.map((option) {
+                    return NavigationRailDestination(
+                      icon: Icon(option['icon']),
+                      selectedIcon: Icon(
+                        option['selectedIcon'] ?? option['icon'],
+                      ),
+                      label: Text(option['title']),
+                    );
+                  }).toList(),
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: (index) =>
+                      setState(() => _selectedIndex = index),
+                  leading: IconButton(
+                    icon: Icon(
+                      _isRailExtended ? Icons.menu_open : Icons.menu,
+                      color: Colors.white,
+                    ),
+                    onPressed: () =>
+                        setState(() => _isRailExtended = !_isRailExtended),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
-
-      // 3. BARRA INFERIOR (BottomNavigationBar) - Somente para Telas < 760px
       bottomNavigationBar: isWideScreen
           ? null
           : BottomNavigationBar(
               currentIndex: _selectedIndex,
-              selectedItemColor: Colors.blueAccent,
+              selectedItemColor: const Color(0xFF1A237E),
               unselectedItemColor: Colors.grey,
               type: BottomNavigationBarType.fixed,
-              onTap: (index) {
-                setState(() => _selectedIndex = index);
-              },
+              onTap: (index) => setState(() => _selectedIndex = index),
               items: menuOptions.map((opt) {
                 return BottomNavigationBarItem(
                   icon: Icon(opt['icon']),

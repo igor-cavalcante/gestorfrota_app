@@ -17,7 +17,6 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
   String _selectedStatus = "SENT_TO_MANAGER";
   DateTime? _selectedDate;
 
-  // 1. Adicionado o filtro "Canceladas"
   final Map<String, String> _filters = {
     "Pendentes": "SENT_TO_MANAGER",
     "Aprovadas": "APPROVED",
@@ -39,12 +38,15 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
       setState(() {
         _displayList = requests;
         if (_selectedDate != null) {
-          _displayList = _displayList.where((r) => 
-            r.startDateTime != null && 
-            r.startDateTime!.day == _selectedDate!.day &&
-            r.startDateTime!.month == _selectedDate!.month &&
-            r.startDateTime!.year == _selectedDate!.year
-          ).toList();
+          _displayList = _displayList
+              .where(
+                (r) =>
+                    r.startDateTime != null &&
+                    r.startDateTime!.day == _selectedDate!.day &&
+                    r.startDateTime!.month == _selectedDate!.month &&
+                    r.startDateTime!.year == _selectedDate!.year,
+              )
+              .toList();
         }
         _loading = false;
       });
@@ -52,7 +54,10 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
       setState(() => _loading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erro ao carregar: $e"), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text("Erro ao carregar: $e"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -60,14 +65,14 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Definindo breakpoints para melhor responsividade
     final double width = MediaQuery.of(context).size.width;
     final bool isMobile = width < 600;
     final bool isTablet = width >= 600 && width < 1100;
     final bool isWeb = width >= 1100;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors
+          .transparent, // Deixa transparente para combinar com a MainScreen
       body: SafeArea(
         child: Column(
           children: [
@@ -76,23 +81,25 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _displayList.isEmpty
-                      ? _buildEmptyState()
-                      : RefreshIndicator(
-                          onRefresh: _loadRequests,
-                          child: SingleChildScrollView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isWeb ? 40 : 16,
-                              vertical: 20,
-                            ),
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 1400),
-                                child: isMobile ? _buildMobileCards() : _buildResponsiveTable(width),
-                              ),
-                            ),
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      onRefresh: _loadRequests,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isWeb ? 40 : 16,
+                          vertical: 20,
+                        ),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 1400),
+                            child: isMobile
+                                ? _buildMobileCards()
+                                : _buildResponsiveTable(width),
                           ),
                         ),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -100,28 +107,28 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
     );
   }
 
-  // --- CABEÇALHO RESPONSIVO ---
   Widget _buildTopHeader(bool isMobile, bool isTablet, bool isWeb) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(isMobile ? 16 : 24),
       decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Solicitações de Veículos", 
+            "Solicitações de Veículos",
             style: TextStyle(
-              fontSize: isMobile ? 20 : 24, 
-              fontWeight: FontWeight.bold, 
-              color: Colors.blueGrey.shade800
-            )
+              fontSize: isMobile ? 20 : 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueGrey.shade800,
+            ),
           ),
           const SizedBox(height: 16),
-          // Wrap permite que os filtros quebrem linha se não couberem
           Wrap(
             spacing: 8,
             runSpacing: 12,
@@ -141,8 +148,8 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
                   selectedColor: Colors.blue.shade700,
                   backgroundColor: Colors.grey.shade100,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black87, 
-                    fontSize: isMobile ? 12 : 13
+                    color: isSelected ? Colors.white : Colors.black87,
+                    fontSize: isMobile ? 12 : 13,
                   ),
                 );
               }).toList(),
@@ -160,28 +167,46 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         ActionChip(
-          avatar: Icon(Icons.calendar_today, size: 16, color: _selectedDate != null ? Colors.blue.shade800 : Colors.grey.shade700),
+          avatar: Icon(
+            Icons.calendar_today,
+            size: 16,
+            color: _selectedDate != null
+                ? Colors.blue.shade800
+                : Colors.grey.shade700,
+          ),
           label: Text(
-            _selectedDate == null ? "Data" : DateFormat('dd/MM/yy').format(_selectedDate!),
-            style: TextStyle(color: _selectedDate != null ? Colors.blue.shade800 : Colors.grey.shade700),
+            _selectedDate == null
+                ? "Data"
+                : DateFormat('dd/MM/yy').format(_selectedDate!),
+            style: TextStyle(
+              color: _selectedDate != null
+                  ? Colors.blue.shade800
+                  : Colors.grey.shade700,
+            ),
           ),
           onPressed: _pickDate,
-          backgroundColor: _selectedDate != null ? Colors.blue.withOpacity(0.1) : Colors.transparent,
+          backgroundColor: _selectedDate != null
+              ? Colors.blue.withOpacity(0.1)
+              : Colors.transparent,
           shape: RoundedRectangleBorder(
-            side: BorderSide(color: _selectedDate != null ? Colors.blue : Colors.grey.shade300),
+            side: BorderSide(
+              color: _selectedDate != null ? Colors.blue : Colors.grey.shade300,
+            ),
             borderRadius: BorderRadius.circular(8),
           ),
         ),
         if (_selectedDate != null)
           IconButton(
-            onPressed: () { setState(() => _selectedDate = null); _loadRequests(); },
+            onPressed: () {
+              setState(() => _selectedDate = null);
+              _loadRequests();
+            },
             icon: const Icon(Icons.close, color: Colors.red, size: 18),
           ),
       ],
     );
   }
 
-  // --- TABELA COM SCROLL HORIZONTAL (EVITA QUEBRA EM TELAS MÉDIAS) ---
   Widget _buildResponsiveTable(double screenWidth) {
     return Container(
       decoration: BoxDecoration(
@@ -192,7 +217,9 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: ConstrainedBox(
-          constraints: BoxConstraints(minWidth: screenWidth < 1000 ? 1000 : screenWidth - 80),
+          constraints: BoxConstraints(
+            minWidth: screenWidth < 1000 ? 1000 : screenWidth - 80,
+          ),
           child: DataTable(
             horizontalMargin: 20,
             columnSpacing: 20,
@@ -205,30 +232,60 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
               DataColumn(label: Text('STATUS')),
               DataColumn(label: Text('AÇÕES')),
             ],
-            rows: _displayList.map((item) => DataRow(
-              cells: [
-                DataCell(Text(item.processNumber)),
-                DataCell(Text(item.requester, style: const TextStyle(fontWeight: FontWeight.bold))),
-                DataCell(Text("${item.city}-${item.state}")),
-                DataCell(Text(item.startDateTime != null ? DateFormat('dd/MM/yy HH:mm').format(item.startDateTime!) : "-")),
-                DataCell(_statusBadge(item.status)),
-                DataCell(Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(icon: const Icon(Icons.visibility, color: Colors.blue), onPressed: () => _showDetailsDialog(item)),
-                    if (item.status == "SENT_TO_MANAGER")
-                      IconButton(icon: const Icon(Icons.check_circle, color: Colors.green), onPressed: () => _approveRequest(item)),
-                  ],
-                )),
-              ],
-            )).toList(),
+            rows: _displayList
+                .map(
+                  (item) => DataRow(
+                    cells: [
+                      DataCell(Text(item.processNumber)),
+                      DataCell(
+                        Text(
+                          item.requester,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      DataCell(Text("${item.city}-${item.state}")),
+                      DataCell(
+                        Text(
+                          item.startDateTime != null
+                              ? DateFormat(
+                                  'dd/MM/yy HH:mm',
+                                ).format(item.startDateTime!)
+                              : "-",
+                        ),
+                      ),
+                      DataCell(_statusBadge(item.status)),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.visibility,
+                                color: Colors.blue,
+                              ),
+                              onPressed: () => _showDetailsDialog(item),
+                            ),
+                            if (item.status == "SENT_TO_MANAGER")
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                ),
+                                onPressed: () => _approveRequest(item),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .toList(),
           ),
         ),
       ),
     );
   }
 
-  // --- CARDS MOBILE OTIMIZADOS ---
   Widget _buildMobileCards() {
     return ListView.builder(
       shrinkWrap: true,
@@ -239,7 +296,9 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           elevation: 1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -248,23 +307,43 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(item.processNumber, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                    Text(
+                      item.processNumber,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
                     _statusBadge(item.status),
                   ],
                 ),
                 const Divider(height: 24),
-                Text(item.requester, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  item.requester,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
                     const Icon(Icons.location_on, size: 14, color: Colors.grey),
                     const SizedBox(width: 4),
-                    Text("${item.city}-${item.state}", style: TextStyle(color: Colors.grey.shade600)),
+                    Text(
+                      "${item.city}-${item.state}",
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                // MUDANÇA AQUI: Uso do Wrap para impedir quebra de tela em celulares finos
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     TextButton.icon(
                       onPressed: () => _showDetailsDialog(item),
@@ -274,11 +353,14 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
                     if (item.status == "SENT_TO_MANAGER")
                       ElevatedButton(
                         onPressed: () => _approveRequest(item),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
                         child: const Text("Analisar"),
                       ),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -287,146 +369,213 @@ class _ApprovalsScreenState extends State<ApprovalsScreen> {
     );
   }
 
-  // --- MODAL DE DETALHES ---
- void _showDetailsDialog(VehicleRequest item) {
-  final bool isLargeScreen = MediaQuery.of(context).size.width > 900;
+  void _showDetailsDialog(VehicleRequest item) {
+    final bool isLargeScreen = MediaQuery.of(context).size.width > 900;
 
-  if (isLargeScreen) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 800),
-          child: _buildDetailsContent(item, isLargeScreen),
+    if (isLargeScreen) {
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600, maxHeight: 800),
+            child: _buildDetailsContent(item, isLargeScreen),
+          ),
         ),
-      ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (_, controller) =>
+                _buildDetailsContent(item, false, controller),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildDetailsContent(
+    VehicleRequest item,
+    bool isLargeScreen, [
+    ScrollController? scrollController,
+  ]) {
+    final DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm');
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.blueGrey.shade50,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(isLargeScreen ? 16 : 24),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "DETALHES DA MISSÃO",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey.shade400,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  Text(
+                    item.processNumber,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              _statusBadge(item.status),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(24),
+            children: [
+              _buildSectionTitle("Informações Gerais"),
+              _detailRow(Icons.person, "Solicitante", item.requester),
+              _detailRow(Icons.info_outline, "Finalidade", item.purpose),
+
+              const SizedBox(height: 24),
+              _buildSectionTitle("Itinerário e Horários"),
+              _detailRow(
+                Icons.location_on,
+                "Destino",
+                "${item.city} - ${item.state}",
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _detailRow(
+                      Icons.calendar_today,
+                      "Saída",
+                      item.startDateTime != null
+                          ? formatter.format(item.startDateTime!)
+                          : "N/A",
+                    ),
+                  ),
+                  Expanded(
+                    child: _detailRow(
+                      Icons.keyboard_return,
+                      "Vinda (Retorno)",
+                      item.endDateTime != null
+                          ? formatter.format(item.endDateTime!)
+                          : "N/A",
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+              _buildSectionTitle("Descrição da Solicitação"),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  item.description,
+                  style: const TextStyle(fontSize: 15, height: 1.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueGrey.shade800,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text("Fechar"),
+            ),
+          ),
+        ),
+      ],
     );
-  } else {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          maxChildSize: 0.95,
-          expand: false,
-          builder: (_, controller) => _buildDetailsContent(item, false, controller),
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.blue,
         ),
       ),
     );
   }
-}
 
-Widget _buildDetailsContent(VehicleRequest item, bool isLargeScreen, [ScrollController? scrollController]) {
-  final DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm');
-
-  return Column(
-    children: [
-      // Cabeçalho do Modal
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.blueGrey.shade50,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(isLargeScreen ? 16 : 24)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Colors.blueGrey.shade300),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("DETALHES DA MISSÃO", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey.shade400, letterSpacing: 1.2)),
-                Text(item.processNumber, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
-            _statusBadge(item.status),
-          ],
-        ),
-      ),
-      Expanded(
-        child: ListView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(24),
-          children: [
-            _buildSectionTitle("Informações Gerais"),
-            _detailRow(Icons.person, "Solicitante", item.requester),
-            _detailRow(Icons.info_outline, "Finalidade", item.purpose),
-            
-            const SizedBox(height: 24),
-            _buildSectionTitle("Itinerário e Horários"),
-            _detailRow(Icons.location_on, "Destino", "${item.city} - ${item.state}"),
-            Row(
-              children: [
-                Expanded(child: _detailRow(Icons.calendar_today, "Saída", item.startDateTime != null ? formatter.format(item.startDateTime!) : "N/A")),
-                Expanded(child: _detailRow(Icons.keyboard_return, "Vinda (Retorno)", item.endDateTime != null ? formatter.format(item.endDateTime!) : "N/A")),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-            _buildSectionTitle("Descrição da Solicitação"),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
-              child: Text(item.description, style: const TextStyle(fontSize: 15, height: 1.5)),
-            ),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(20),
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueGrey.shade800,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text("Fechar"),
           ),
-        ),
-      )
-    ],
-  );
-}
-
-Widget _buildSectionTitle(String title) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
-  );
-}
-
-Widget _detailRow(IconData icon, String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 20, color: Colors.blueGrey.shade300),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-              Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _statusBadge(String status) {
     Color color;
@@ -452,8 +601,18 @@ Widget _detailRow(IconData icon, String label, String value) {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -464,11 +623,19 @@ Widget _detailRow(IconData icon, String label, String value) {
       firstDate: DateTime(2024),
       lastDate: DateTime(2027),
     );
-    if (picked != null) { setState(() => _selectedDate = picked); _loadRequests(); }
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+      _loadRequests();
+    }
   }
 
   void _approveRequest(VehicleRequest item) async {
-    final bool? approved = await Navigator.push(context, MaterialPageRoute(builder: (context) => ApprovalFormScreen(request: item)));
+    final bool? approved = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ApprovalFormScreen(request: item),
+      ),
+    );
     if (approved == true) _loadRequests();
   }
 
@@ -479,7 +646,10 @@ Widget _detailRow(IconData icon, String label, String value) {
         children: [
           Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text("Nenhum registro encontrado", style: TextStyle(color: Colors.grey.shade500)),
+          Text(
+            "Nenhum registro encontrado",
+            style: TextStyle(color: Colors.grey.shade500),
+          ),
         ],
       ),
     );
