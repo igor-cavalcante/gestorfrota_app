@@ -32,6 +32,13 @@ class _RequesterScreenState extends State<RequesterScreen> {
     'URGENT': 'Urgente',
   };
 
+  final Map<String, String> _purposeLabels = {
+    'DILLIGENCE': 'Diligência / Investigação',
+    'ESCORT': 'Escolta / Apoio',
+    'ON_CALL': 'Plantão',
+    'OTHER': 'Outros',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +53,10 @@ class _RequesterScreenState extends State<RequesterScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar solicitações: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Erro ao carregar solicitações: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -63,9 +73,25 @@ class _RequesterScreenState extends State<RequesterScreen> {
           context,
           MaterialPageRoute(builder: (context) => const NewRequestScreen()),
         ).then((_) => _fetchRequests()),
-        label: const Text("NOVA MISSÃO", style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text(
+          "NOVA MISSÃO",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2, // Melhora a legibilidade
+          ),
+        ),
         icon: const Icon(Icons.add_location_alt_rounded),
-        backgroundColor: const Color(0xFF1A237E),
+        // Cores e Efeitos
+        backgroundColor: const Color(0xFF2196F3), // Um azul mais vivo e visível
+        foregroundColor:
+            Colors.white, // Garante que o texto/ícone fiquem brancos
+
+        hoverColor: const Color(
+          0xFF1976D2,
+        ), // Tom levemente mais escuro ao passar o mouse
+        hoverElevation: 12, // Aumenta a sombra no hover para dar profundidade
+        splashColor: Colors.white24,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       body: Column(
         children: [
@@ -74,15 +100,16 @@ class _RequesterScreenState extends State<RequesterScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _requests.isEmpty
-                    ? const Center(child: Text("Nenhuma solicitação encontrada."))
-                    : RefreshIndicator(
-                        onRefresh: _fetchRequests,
-                        child: ListView.builder(
-                          itemCount: _requests.length,
-                          padding: const EdgeInsets.all(12),
-                          itemBuilder: (context, index) => _buildRequestCard(_requests[index]),
-                        ),
-                      ),
+                ? const Center(child: Text("Nenhuma solicitação encontrada."))
+                : RefreshIndicator(
+                    onRefresh: _fetchRequests,
+                    child: ListView.builder(
+                      itemCount: _requests.length,
+                      padding: const EdgeInsets.all(12),
+                      itemBuilder: (context, index) =>
+                          _buildRequestCard(_requests[index]),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -110,7 +137,9 @@ class _RequesterScreenState extends State<RequesterScreen> {
                   }
                 },
                 selectedColor: const Color(0xFF1A237E),
-                labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black87),
+                labelStyle: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black87,
+                ),
               ),
             );
           }).toList(),
@@ -128,27 +157,64 @@ class _RequesterScreenState extends State<RequesterScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ListTile(
-          leading: const Icon(Icons.assignment_outlined, color: Color(0xFF1A237E)),
-          title: Text("Destino: ${req.city}", style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text("Processo: ${req.processNumber}\nSaída: ${req.startDateTime != null ? DateFormat('dd/MM/yy HH:mm').format(req.startDateTime!) : 'N/A'}"),
+          leading: const Icon(
+            Icons.assignment_outlined,
+            color: Color(0xFF1A237E),
+          ),
+          title: Text(
+            "Destino: ${req.city}",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Text(
+            "Processo: ${req.processNumber}\nSaída: ${req.startDateTime != null ? DateFormat('dd/MM/yy HH:mm').format(req.startDateTime!) : 'N/A'}",
+          ),
           trailing: _statusBadge(req.status),
         ),
       ),
     );
   }
 
+  // Widget de status com tradução e cores dinâmicas
   Widget _statusBadge(String status) {
-    Color color = status == 'APPROVED' ? Colors.green : (status == 'REJECTED' ? Colors.red : Colors.orange);
+    final Map<String, Color> statusColors = {
+      'APPROVED': Colors.green,
+      'REJECTED': Colors.red,
+      'SENT_TO_MANAGER': Colors.orange,
+      'CANCELED': Colors.grey,
+      'COMPLETED': Colors.blue,
+    };
+
+    final Color baseColor = statusColors[status] ?? Colors.blueGrey;
+    final String label = _statusLabels[status] ?? status;
+
+    // Criando uma cor um pouco mais escura para o texto manualmente
+    // .withAlpha(255) garante que a cor não tenha transparência no texto
+    final Color textColor = HSLColor.fromColor(baseColor)
+        .withLightness(0.35) // Ajusta a luminosidade (0.0 a 1.0)
+        .toColor();
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-      child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: baseColor.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: baseColor.withOpacity(0.4), width: 1),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          color: textColor,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
   // --- MODAL DE DETALHES RESPONSIVO ---
   void _showRequestDetails(VehicleRequest req) {
     final bool isWeb = MediaQuery.of(context).size.width > 800;
+    final double screenWidth = MediaQuery.of(context).size.width;
     final df = DateFormat('dd/MM/yyyy HH:mm');
 
     showDialog(
@@ -168,15 +234,69 @@ class _RequesterScreenState extends State<RequesterScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _sectionTitle("Detalhes da Missão"),
-                      _infoRow(Icons.location_on, "Destino", "${req.city} - ${req.state}"),
-                      // Alterado aqui: Exibindo a prioridade traduzida
-                      _infoRow(Icons.priority_high, "Prioridade", _priorityLabels[req.priority] ?? req.priority),
-                      Row(
-                        children: [
-                          Expanded(child: _infoRow(Icons.calendar_today, "Saída", req.startDateTime != null ? df.format(req.startDateTime!) : "N/A")),
-                          Expanded(child: _infoRow(Icons.keyboard_return, "Vinda", req.endDateTime != null ? df.format(req.endDateTime!) : "N/A")),
-                        ],
+                      _infoRow(
+                        Icons.location_on,
+                        "Destino",
+                        "${req.city} - ${req.state}",
                       ),
+                      _infoRow(
+                        Icons.priority_high,
+                        "Prioridade",
+                        _priorityLabels[req.priority] ?? req.priority,
+                      ),
+
+                      // ÁREA CORRIGIDA: Layout Adaptativo para evitar Overflow
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Se a largura do diálogo for pequena, empilha as datas
+                          if (screenWidth < 450) {
+                            return Column(
+                              children: [
+                                _infoRow(
+                                  Icons.calendar_today,
+                                  "Saída",
+                                  req.startDateTime != null
+                                      ? df.format(req.startDateTime!)
+                                      : "N/A",
+                                ),
+                                _infoRow(
+                                  Icons.keyboard_return,
+                                  "Vinda",
+                                  req.endDateTime != null
+                                      ? df.format(req.endDateTime!)
+                                      : "N/A",
+                                ),
+                              ],
+                            );
+                          }
+                          // Em telas maiores, mantém lado a lado
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: _infoRow(
+                                  Icons.calendar_today,
+                                  "Saída",
+                                  req.startDateTime != null
+                                      ? df.format(req.startDateTime!)
+                                      : "N/A",
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _infoRow(
+                                  Icons.keyboard_return,
+                                  "Vinda",
+                                  req.endDateTime != null
+                                      ? df.format(req.endDateTime!)
+                                      : "N/A",
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+
                       _infoRow(Icons.notes, "Descrição", req.description),
                       const Divider(height: 32),
                       _sectionTitle("Histórico de Ações"),
@@ -211,8 +331,18 @@ class _RequesterScreenState extends State<RequesterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(req.processNumber, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                Text("Finalidade: ${req.purpose}", style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13)),
+                Text(
+                  req.processNumber,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+               Text(
+                  "Finalidade: ${_purposeLabels[req.purpose] ?? req.purpose}",
+                  style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13),
+                ),
               ],
             ),
           ),
@@ -225,13 +355,31 @@ class _RequesterScreenState extends State<RequesterScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.start, // Alinha ícone ao topo do texto
         children: [
           Icon(icon, size: 20, color: const Color(0xFF1A237E)),
           const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-          ]),
+          Expanded(
+            // Garante que o texto ocupe apenas o espaço disponível
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                  softWrap: true, // Permite quebra de linha
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -240,7 +388,14 @@ class _RequesterScreenState extends State<RequesterScreen> {
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(title.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.blueGrey)),
+      child: Text(
+        title.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w900,
+          color: Colors.blueGrey,
+        ),
+      ),
     );
   }
 
@@ -248,19 +403,41 @@ class _RequesterScreenState extends State<RequesterScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey.shade200)),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(h['action'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-              Text(DateFormat('dd/MM HH:mm').format(DateTime.parse(h['performedAt'])), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+              Text(
+                h['action'] ?? '',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+              Text(
+                DateFormat(
+                  'dd/MM HH:mm',
+                ).format(DateTime.parse(h['performedAt'])),
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              ),
             ],
           ),
-          Text("Por: ${h['performedBy']}", style: const TextStyle(fontSize: 12)),
-          if (h['notes'] != null) Text("Obs: ${h['notes']}", style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+          Text(
+            "Por: ${h['performedBy']}",
+            style: const TextStyle(fontSize: 12),
+          ),
+          if (h['notes'] != null)
+            Text(
+              "Obs: ${h['notes']}",
+              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+            ),
         ],
       ),
     );
@@ -273,7 +450,10 @@ class _RequesterScreenState extends State<RequesterScreen> {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () => Navigator.pop(context),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey.shade800, foregroundColor: Colors.white),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueGrey.shade800,
+            foregroundColor: Colors.white,
+          ),
           child: const Text("FECHAR"),
         ),
       ),
